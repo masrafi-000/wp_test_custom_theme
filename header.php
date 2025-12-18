@@ -16,5 +16,25 @@
     <?php wp_head(); ?>
 </head>
 
-<body>
-    <header>header</header>
+<body class="">
+    <header class="w-full  border-b border-b-gray-50 drop-shadow-2xl p-6">
+        <nav class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-8">
+                        <h1 class="text-2xl font-bold text-gray-900">LearnHub</h1>
+                        <div class="hidden md:flex space-x-6">
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors">Courses</a>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors">Instructors</a>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors">About</a>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors">Contact</a>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors">Sign In</a>
+                        <a href="#" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">Sign Up</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>

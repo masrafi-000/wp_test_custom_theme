@@ -9,6 +9,9 @@ get_header();
 ?>
 
 
-<div class="content">Hello From main template.</div>
+<div class="container mx-auto min-h-screen">
+    
+<?php get_template_part('src/components/hero'); ?>
+</div>
 
 <?php get_footer();
