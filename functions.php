@@ -22,6 +22,10 @@ function testt3_enqueue_scripts()
         file_exists($tailwind_path) ? filemtime($tailwind_path) : null
     );
 
+    // BootStrap output
+    wp_enqueue_style('bootstrap-css', get_template_directory_uri() . '/assets/css/bootstrap.min.css', array(), '5.3.2');
+
+
     // Main theme style (style.css)
     wp_enqueue_style(
         'main-css',
@@ -40,6 +44,9 @@ function testt3_enqueue_scripts()
         file_exists($script_path) ? filemtime($script_path) : null,
         true
     );
+
+    // Bootstrap Script Output
+    wp_enqueue_script('bootstrap-js', get_template_directory_uri() . '/assets/js/bootstrap.bundle.min.js', array('jquery'), '5.3.2', true);
 }
 add_action('wp_enqueue_scripts', 'testt3_enqueue_scripts');
 
