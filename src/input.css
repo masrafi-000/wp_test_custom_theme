@@ -1,1 +1,9 @@
 @import "tailwindcss";
+
+@theme {
+  --color-header-bg: var(--header-bg);
+  --color-page-bg-: var(--page-bg);
+
+  --spacing-section-y: var(--section-padding-y);
+  --text-align-page: var(--page-text-align);
+}

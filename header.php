@@ -31,7 +31,7 @@
                         </div>
                     </div>
                     <div class="hidden md:flex items-center space-x-4">
-                        <a href="<?php echo home_url('/login'); ?>" class="text-gray-700 hover:text-blue-600 transition-colors">Sign In</a>
+                        <a href="<?php echo home_url('/login'); ?>" class="text-gray-700 hover:text-blue-600 border border-gray-200  px-6 py-2 rounded-lg transition-colors">Sign In</a>
                         <a href="<?php echo home_url('/signup'); ?>" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">Sign Up</a>
                     </div>
 
@@ -48,35 +48,18 @@
                 </div>
 
                 <!-- Mobile Links -->
-                 <!-- <div class="absolute  inset-0 backdrop-blur-sm transition-opacity duration-500 z-50"> -->
+                <!-- <div class="absolute  inset-0 backdrop-blur-sm transition-opacity duration-500 z-50"> -->
 
-                     <div id="mobile-menu" class="hidden   flex-col space-y-4 mt-4 md:hidden">
-                         <a href="<?php echo home_url('/cources') ?>" class="text-gray-700 hover:text-blue-600 transition-colors">Courses</a>
-                         <a href="<?php echo home_url('/instructors') ?>" class="text-gray-700 hover:text-blue-600 transition-colors">Instructors</a>
-                         <a href="<?php echo home_url('/about') ?>" class="text-gray-700 hover:text-blue-600 transition-colors">About</a>
-                         <a href="<?php echo home_url('/contact') ?>" class="text-gray-700 hover:text-blue-600 transition-colors">Contact</a>
-                         <a href="<?php echo home_url('/login'); ?>" class="text-gray-700 border border-gray-200 px-6 py-2 rounded-lg hover:text-blue-600 transition-colors">Sign In</a>
-                         <a href="<?php echo home_url('/signup'); ?>" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">Sign Up</a>
-                     </div>
-                 <!-- </div> -->
+                <div id="mobile-menu" class="hidden   flex-col space-y-4 mt-4 md:hidden">
+                    <a href="<?php echo home_url('/cources') ?>" class="text-gray-700 hover:text-blue-600 transition-colors">Courses</a>
+                    <a href="<?php echo home_url('/instructors') ?>" class="text-gray-700 hover:text-blue-600 transition-colors">Instructors</a>
+                    <a href="<?php echo home_url('/about') ?>" class="text-gray-700 hover:text-blue-600 transition-colors">About</a>
+                    <a href="<?php echo home_url('/contact') ?>" class="text-gray-700 hover:text-blue-600 transition-colors">Contact</a>
+                    <a href="<?php echo home_url('/login'); ?>" class="text-gray-700 border border-gray-200 px-6 py-2 rounded-lg hover:text-blue-600 transition-colors">Sign In</a>
+                    <a href="<?php echo home_url('/signup'); ?>" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">Sign Up</a>
+                </div>
+                <!-- </div> -->
 
             </div>
         </nav>
     </header>
-
-    <script>
-        const menuButton = document.getElementById('mobile-menu-button');
-        const mobileMenu = document.getElementById('mobile-menu');
-
-        menuButton.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-            mobileMenu.classList.add("flex")
-        });
-
-        // Close menu on link click
-        mobileMenu.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                mobileMenu.classList.add('hidden');
-            });
-        });
-    </script>
