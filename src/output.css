@@ -110,6 +110,7 @@
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --default-font-family: var(--font-sans);
     --default-mono-font-family: var(--font-mono);
+    --color-page-bg: var(--page-bg);
     --spacing-section-y: var(--section-padding-y);
   }
 }
@@ -685,6 +686,9 @@
   }
   .bg-indigo-600 {
     background-color: var(--color-indigo-600);
+  }
+  .bg-page-bg {
+    background-color: var(--color-page-bg);
   }
   .bg-pink-100 {
     background-color: var(--color-pink-100);

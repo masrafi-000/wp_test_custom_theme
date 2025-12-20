@@ -9,7 +9,7 @@ get_header();
 ?>
 
 
-<div class="container mx-auto min-h-screen">
+<div class=" min-h-screen">
 
     <?php get_template_part('src/components/hero'); ?>
     <?php get_template_part('src/components/home'); ?>

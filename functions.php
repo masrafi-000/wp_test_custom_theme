@@ -1,38 +1,61 @@
 <?php
-
 /**
- * Funtions to handle enqueue
- * 
+ * Theme functions
+ *
  * @package TestT3
  */
 
+/**
+ * Enqueue styles & scripts
+ */
 function testt3_enqueue_scripts()
 {
-    // Register Styles
-    wp_register_style('main-css', get_stylesheet_uri(), []);
-    wp_register_style('tailwind-css', get_template_directory_uri() . '/src/output.css');
+    /* ---------- Styles ---------- */
 
-    // Register Scripts
-    wp_register_script("script-js", get_template_directory_uri() . '/assets/js/script.js', [], fileatime(get_template_directory() . "/assets/js/script.js"), true);
+    // Tailwind output
+    $tailwind_path = get_template_directory() . '/src/output.css';
+    wp_enqueue_style(
+        'tailwind-css',
+        get_template_directory_uri() . '/src/output.css',
+        [],
+        file_exists($tailwind_path) ? filemtime($tailwind_path) : null
+    );
 
+    // Main theme style (style.css)
+    wp_enqueue_style(
+        'main-css',
+        get_stylesheet_uri(),
+        ['tailwind-css'],
+        filemtime(get_stylesheet_directory() . '/style.css')
+    );
 
-    // Enqueue Style
-    wp_enqueue_style('main-css');
-    wp_enqueue_style('tailwind-css');
+    /* ---------- Scripts ---------- */
 
-    // Enqueue Scripts
-    wp_enqueue_script("script-js");
+    $script_path = get_template_directory() . '/assets/js/script.js';
+    wp_enqueue_script(
+        'theme-script',
+        get_template_directory_uri() . '/assets/js/script.js',
+        [],
+        file_exists($script_path) ? filemtime($script_path) : null,
+        true
+    );
 }
+add_action('wp_enqueue_scripts', 'testt3_enqueue_scripts');
 
+
+/**
+ * Theme Customizer
+ */
 function theme_customize_register($wp_customize)
 {
     $wp_customize->add_section('design_section', [
-        'title' => 'Design System',
+        'title'    => 'Design System',
+        'priority' => 30,
     ]);
 
     // Header background
     $wp_customize->add_setting('header_bg', [
-        'default' => '#020617',
+        'default'           => '#020617',
         'sanitize_callback' => 'sanitize_hex_color',
     ]);
 
@@ -41,7 +64,7 @@ function theme_customize_register($wp_customize)
             $wp_customize,
             'header_bg',
             [
-                'label' => 'Header Background',
+                'label'   => 'Header Background',
                 'section' => 'design_section',
             ]
         )
@@ -49,7 +72,7 @@ function theme_customize_register($wp_customize)
 
     // Page background
     $wp_customize->add_setting('page_bg', [
-        'default' => '#ffffff',
+        'default'           => '#FFFFFF',
         'sanitize_callback' => 'sanitize_hex_color',
     ]);
 
@@ -58,21 +81,24 @@ function theme_customize_register($wp_customize)
             $wp_customize,
             'page_bg',
             [
-                'label' => 'Page Background',
+                'label'   => 'Page Background',
                 'section' => 'design_section',
             ]
         )
     );
 
+    // Section padding Y
     $wp_customize->add_setting('section_padding_y', [
         'default' => '4rem',
-        'sanitize_callback' => 'sanitize_text_field',
+        'sanitize_callback' => function ($value) {
+            return preg_replace('/[^0-9a-z.%]/i', '', $value);
+        },
     ]);
 
     $wp_customize->add_control('section_padding_y', [
-        'label' => 'Section Vertical Padding',
+        'label'   => 'Section Vertical Padding',
         'section' => 'design_section',
-        'type' => 'select',
+        'type'    => 'select',
         'choices' => [
             '2rem' => 'Small',
             '4rem' => 'Medium',
@@ -82,38 +108,36 @@ function theme_customize_register($wp_customize)
 
     // Text alignment
     $wp_customize->add_setting('page_text_align', [
-        'default' => 'center',
+        'default'           => 'center',
         'sanitize_callback' => 'sanitize_text_field',
     ]);
 
     $wp_customize->add_control('page_text_align', [
-        'label' => 'Page Text Alignment',
+        'label'   => 'Page Text Alignment',
         'section' => 'design_section',
-        'type' => 'select',
+        'type'    => 'select',
         'choices' => [
-            'left' => 'Left',
+            'left'   => 'Left',
             'center' => 'Center',
-            'right' => 'Right',
+            'right'  => 'Right',
         ],
     ]);
 }
-
-// Add Actions
 add_action('customize_register', 'theme_customize_register');
-add_action('wp_enqueue_scripts', 'testt3_enqueue_scripts');
 
 
+/**
+ * Runtime CSS variables (Design System)
+ */
+function theme_runtime_css_vars()
+{
+    $css = ':root {
+        --header-bg: ' . get_theme_mod('header_bg', '#020617') . ';
+        --page-bg: ' . get_theme_mod('page_bg', '#FFFFFF') . ';
+        --section-padding-y: ' . get_theme_mod('section_padding_y', '4rem') . ';
+        --page-text-align: ' . get_theme_mod('page_text_align', 'center') . ';
+    }';
 
-function theme_runtime_css_vars() {
-    ?>
-    <style>
-        :root {
-            --header-bg: <?php echo esc_attr( get_theme_mod('header_bg') ); ?>;
-            --page-bg: <?php echo esc_attr( get_theme_mod('page_bg') ); ?>;
-            --section-padding-y: <?php echo esc_attr( get_theme_mod('section_padding_y') ); ?>;
-            --page-text-align: <?php echo esc_attr( get_theme_mod('page_text_align') ); ?>;
-        }
-    </style>
-    <?php
+    wp_add_inline_style('tailwind-css', $css);
 }
-add_action( 'wp_head', 'theme_runtime_css_vars' );
+add_action('wp_enqueue_scripts', 'theme_runtime_css_vars');
