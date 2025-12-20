@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Theme functions
  *
@@ -52,6 +53,23 @@ function theme_customize_register($wp_customize)
         'title'    => 'Design System',
         'priority' => 30,
     ]);
+
+    // Text Color
+    $wp_customize->add_setting('text_primary', [
+        'default'           => '#000000',
+        'sanitize_callback' => 'sanitize_hex_color'
+    ]);
+
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'text_primary',
+            [
+                'label'   => 'Text Color',
+                'section' => 'design_section',
+            ]
+        )
+    );
 
     // Header background
     $wp_customize->add_setting('header_bg', [
@@ -134,6 +152,7 @@ function theme_runtime_css_vars()
     $css = ':root {
         --header-bg: ' . get_theme_mod('header_bg', '#020617') . ';
         --page-bg: ' . get_theme_mod('page_bg', '#FFFFFF') . ';
+        --text-primary: ' . get_theme_mod('text_primary', '#000000') . ';
         --section-padding-y: ' . get_theme_mod('section_padding_y', '4rem') . ';
         --page-text-align: ' . get_theme_mod('page_text_align', 'center') . ';
     }';

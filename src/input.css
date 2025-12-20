@@ -3,6 +3,7 @@
 @theme {
   --color-header-bg: var(--header-bg);
   --color-page-bg: var(--page-bg);
+ --color-text-primary: var(--text-primary);
 
   --spacing-section-y: var(--section-padding-y);
   --text-align-page: var(--page-text-align);
