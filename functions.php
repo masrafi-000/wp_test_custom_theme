@@ -33,7 +33,12 @@ function testt3_enqueue_scripts()
 
     // leaflet.js style
 
-    wp_enqueue_style('leaflet-css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', [], fileatime("https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"),);
+    wp_enqueue_style(
+        'leaflet-css',
+        'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+        [],
+        '1.9.4'
+    );
 
     /* ---------- Scripts ---------- */
 
@@ -47,10 +52,24 @@ function testt3_enqueue_scripts()
     );
 
     // Leaflet.js script add
-    wp_enqueue_script('leaflet-js', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', [], fileatime('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'), true);
+    wp_enqueue_script(
+        'leaflet-js',
+        'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+        [],
+        '1.9.4',
+        true
+    );
 
     // Custom Leaflet.js script
-    wp_enqueue_script('custom-leaflet-js', get_template_directory_uri() . '/assets/js/custom-leaflet-js.js', ['leaflet-js'], fileatime(get_template_directory_uri() . '/assets/js/custom-leaflet-js.js'), true);
+    $custom_leaflet_path = get_template_directory() . '/assets/js/custom-leaflet-js.js';
+
+    wp_enqueue_script(
+        'custom-leaflet-js',
+        get_template_directory_uri() . '/assets/js/custom-leaflet-js.js',
+        ['leaflet-js'],
+        file_exists($custom_leaflet_path) ? filemtime($custom_leaflet_path) : null,
+        true
+    );
 }
 add_action('wp_enqueue_scripts', 'testt3_enqueue_scripts');
 
