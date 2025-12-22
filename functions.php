@@ -72,8 +72,7 @@ function testt3_enqueue_scripts()
     );
 
     // Map_form Script
-
-    $custom_map_js_path = get_template_directory() . '/assets/js/map-form-js.js';
+    $custom_map_js_path = get_template_directory() . '/assets/js/map-form.js';
 
     wp_enqueue_script(
         'map-form-js',
@@ -84,9 +83,15 @@ function testt3_enqueue_scripts()
     );
 
     // Blog script
-    $custom_blog_js_path = get_template_directory() . '/assets/js/map-form-js.js';
+    $custom_blog_js_path = get_template_directory() . '/assets/js/blog.js';
 
-    wp_enqueue_script('blog-js', get_template_directory_uri() . '/assets/js/map-form.js', [], file_exists($custom_blog_js_path) ? filemtime($custom_blog_js_path) : null, true);
+    wp_enqueue_script(
+        'blog-js',
+        get_template_directory_uri() . '/assets/js/blog.js',
+        [],
+        file_exists($custom_blog_js_path) ? filemtime($custom_blog_js_path) : null,
+        true
+    );
 }
 add_action('wp_enqueue_scripts', 'testt3_enqueue_scripts');
 
