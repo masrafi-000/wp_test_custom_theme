@@ -82,6 +82,11 @@ function testt3_enqueue_scripts()
         file_exists($custom_map_js_path) ? filemtime($custom_map_js_path) : null,
         true
     );
+
+    // Blog script
+    $custom_blog_js_path = get_template_directory() . '/assets/js/map-form-js.js';
+
+    wp_enqueue_script('blog-js', get_template_directory_uri() . '/assets/js/map-form.js', [], file_exists($custom_blog_js_path) ? filemtime($custom_blog_js_path) : null, true);
 }
 add_action('wp_enqueue_scripts', 'testt3_enqueue_scripts');
 
