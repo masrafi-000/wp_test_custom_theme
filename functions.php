@@ -212,3 +212,7 @@ function theme_runtime_css_vars()
     wp_add_inline_style('tailwind-css', $css);
 }
 add_action('wp_enqueue_scripts', 'theme_runtime_css_vars');
+
+
+
+

@@ -252,7 +252,6 @@ if (
             <!-- SEARCH SECTION -->
             <div class="bg-white shadow-lg rounded-2xl p-6 mb-8">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-end">
-                    // DESTINATION INPUT - TRIGGER SEARCH ON ENTER
                     <div class="w-full lg:w-1/3">
                         <label class="block text-sm font-semibold mb-2">Destination</label>
                         <input type="text" id="destination-input" value="MAD" placeholder="Where are you going?" class="w-full border rounded-lg px-4 py-3 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-green-400" onkeypress="if(event.key==='Enter') document.getElementById('search-btn').click();" />
