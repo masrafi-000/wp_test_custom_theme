@@ -252,7 +252,7 @@ if (
             <!-- SEARCH SECTION -->
             <div class="bg-white shadow-lg rounded-2xl p-6 mb-8">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-end">
-
+                    // DESTINATION INPUT - TRIGGER SEARCH ON ENTER
                     <div class="w-full lg:w-1/3">
                         <label class="block text-sm font-semibold mb-2">Destination</label>
                         <input type="text" id="destination-input" value="MAD" placeholder="Where are you going?" class="w-full border rounded-lg px-4 py-3 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-green-400" onkeypress="if(event.key==='Enter') document.getElementById('search-btn').click();" />
@@ -350,16 +350,16 @@ if (
 
 
         <!-- ================= RESULTS + MAP ================= -->
-        <section class="px-4 pb-16 h-screen flex gap-4 flex-col-reverse md:flex-row ">
+        <section class="px-4 pb-16 h-screen flex gap-4 ">
 
             <!-- Left: Hotel List -->
-            <div id="items" class="w-full flex-1 bg-white rounded-2xl shadow  flex flex-col overflow-y-auto ">
+            <div id="items" class="w-1/2 bg-white rounded-2xl shadow  flex flex-col overflow-y-auto ">
 
                 <h2 class="text-xl font-bold sticky top-0 bg-gray-300 z-10 p-4">
                     Available Hotels
                 </h2>
 
-                <div id="hotels-list" class=" w-fullmd:flex-1 grid grid-cols-1 gap-6 px-6 py-4"></div>
+                <div id="hotels-list" class="flex-1 grid grid-cols-1 gap-6 px-6 py-4"></div>
 
             </div>
 
