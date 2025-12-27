@@ -75,25 +75,187 @@ if (
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Hotel Search</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
         crossorigin="" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-state {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .hotel-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #f9fafb;
+        }
+
+        .hotel-card:hover {
+            border-color: #10b981;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .hotel-card-inner {
+            display: flex;
+            gap: 12px;
+        }
+
+        .hotel-image-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .hotel-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .hotel-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .hotel-rating {
+            font-size: 12px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .category-badge {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .hotel-location {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 6px;
+        }
+
+        .hotel-features {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .feature-tag,
+        .promotion-tag {
+            background: #f0fdf4;
+            color: #15803d;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .promotion-tag {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .hotel-pricing {
+            text-align: right;
+            min-width: 80px;
+        }
+
+        .discount-badge {
+            display: inline-block;
+            background: #ef4444;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .price-amount {
+            font-size: 16px;
+            font-weight: bold;
+            color: #10b981;
+        }
+
+        .price-currency {
+            font-size: 12px;
+        }
+
+        .price-note {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .price-marker {
+            background: #10b981;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .dropdown-menu {
+            transition: opacity 0.2s ease;
+        }
+    </style>
 </head>
 
 <body>
-    <main class="w-full">
+    <main id="page" class="w-full h-screen">
 
         <!-- ================= SEARCH BAR ================= -->
         <section class="px-4 py-4">
             <!-- SEARCH SECTION -->
             <div class="bg-white shadow-lg rounded-2xl p-6 mb-8">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-end">
-                    <!-- Destination -->
+
                     <div class="w-full lg:w-1/3">
                         <label class="block text-sm font-semibold mb-2">Destination</label>
-                        <input type="text" id="destination-input" value="MAD" placeholder="Where are you going?" class="w-full border rounded-lg px-4 py-3 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-green-400" />
+                        <input type="text" id="destination-input" value="MAD" placeholder="Where are you going?" class="w-full border rounded-lg px-4 py-3 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-green-400" onkeypress="if(event.key==='Enter') document.getElementById('search-btn').click();" />
                     </div>
                     <!-- Dates -->
                     <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-1/3">
@@ -188,24 +350,22 @@ if (
 
 
         <!-- ================= RESULTS + MAP ================= -->
-        <section class="px-4 pb-16 h-screen flex gap-4 ">
+        <section class="px-4 pb-16 h-screen flex gap-4 flex-col-reverse md:flex-row ">
 
             <!-- Left: Hotel List -->
-            <div class="w-1/2 bg-white rounded-2xl shadow  flex flex-col overflow-y-auto">
+            <div id="items" class="w-full flex-1 bg-white rounded-2xl shadow  flex flex-col overflow-y-auto ">
 
                 <h2 class="text-xl font-bold sticky top-0 bg-gray-300 z-10 p-4">
                     Available Hotels
                 </h2>
 
-                <div
-                    id="results-container"
-                    class="flex-1 grid grid-cols-1 gap-6 px-6 py-4"></div>
+                <div id="hotels-list" class=" w-fullmd:flex-1 grid grid-cols-1 gap-6 px-6 py-4"></div>
 
             </div>
 
             <!-- Right: Map -->
 
-            <div id="map" class="flex-1 border shadow-2xl rounded-md"></div>
+            <div id="hotel-map" class="flex-1 border shadow-2xl rounded-md"></div>
 
 
         </section>
@@ -213,202 +373,15 @@ if (
 
     </main>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-    var map = L.map('map').setView([51.505, -0.09], 13);
-
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap'
-    }).addTo(map);
-
-
-    var markers = locations.map(loc => 
-        L.marker([loc.lat, loc.lng])
-         .bindPopup(`<b>${loc.title}</b><br>Lat: ${loc.lat}, Lng: ${loc.lng}`)
-    );
-    
-    var group = L.featureGroup(markers).addTo(map)
-    map.fitBounds(group.getBounds())
-
-
-});
-</script>
-    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
 
     <script>
-        // ১. Mock Data (নমুনা ডাটাবেস)
-        const hotels = [{
-                id: 1,
-                name: "Grand Madrid Hotel",
-                price: 150,
-                rating: 8.5,
-                stars: 5,
-                image: "https://via.placeholder.com/400x250?text=Grand+Hotel"
-            },
-            {
-                id: 2,
-                name: "City Backpackers",
-                price: 50,
-                rating: 7.2,
-                stars: 2,
-                image: "https://via.placeholder.com/400x250?text=Backpackers"
-            },
-            {
-                id: 3,
-                name: "Luxury Palace",
-                price: 300,
-                rating: 9.5,
-                stars: 5,
-                image: "https://via.placeholder.com/400x250?text=Luxury"
-            },
-            {
-                id: 4,
-                name: "Comfort Inn",
-                price: 120,
-                rating: 8.0,
-                stars: 3,
-                image: "https://via.placeholder.com/400x250?text=Comfort"
-            },
-            {
-                id: 5,
-                name: "Budget Stay",
-                price: 80,
-                rating: 6.5,
-                stars: 3,
-                image: "https://via.placeholder.com/400x250?text=Budget"
-            },
-            {
-                id: 6,
-                name: "Royal Suite",
-                price: 450,
-                rating: 9.8,
-                stars: 5,
-                image: "https://via.placeholder.com/400x250?text=Royal"
-            },
-        ];
-
-        let currentHotels = [...hotels]; // বর্তমানে যা দেখানো হচ্ছে
-
-        // ২. Dropdown Toggle Logic (Hover সমস্যা সমাধান)
-        function toggleDropdown(id) {
-            // সব ড্রপডাউন আগে বন্ধ করি
-            document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                if (menu.id !== id) menu.classList.add('hidden');
-            });
-            // নির্দিষ্ট ড্রপডাউনটি টগল করি
-            const menu = document.getElementById(id);
-            menu.classList.toggle('hidden');
-        }
-
-        // উইন্ডোতে অন্য কোথাও ক্লিক করলে ড্রপডাউন বন্ধ হবে
-        window.addEventListener('click', function(e) {
-            if (!e.target.closest('.dropdown-container')) {
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.classList.add('hidden');
-                });
-            }
-        });
-
-        // ৩. Rendering Function (কার্ড দেখানোর ফাংশন)
-        function renderHotels(data) {
-            const container = document.getElementById('results-container');
-            container.innerHTML = "";
-
-            if (data.length === 0) {
-                container.innerHTML = `<p class="text-gray-500 text-center col-span-full py-10">No hotels found matching your criteria.</p>`;
-                return;
-            }
-
-            data.forEach(hotel => {
-                const html = `
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition">
-                        <img src="${hotel.image}" class="w-full h-48 object-cover">
-                        <div class="p-4">
-                            <div class="flex justify-between items-start">
-                                <h3 class="text-lg font-bold text-gray-800">${hotel.name}</h3>
-                                <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded">${hotel.rating}</span>
-                            </div>
-                            <div class="text-yellow-400 text-sm mt-1">
-                                ${'★'.repeat(hotel.stars)}${'☆'.repeat(5 - hotel.stars)}
-                            </div>
-                            <div class="mt-4 flex justify-between items-center">
-                                <span class="text-gray-500 text-sm">per night</span>
-                                <span class="text-xl font-bold text-green-600">$${hotel.price}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += html;
-            });
-        }
-
-        // ৪. Filtering Logic (ফিল্টার লজিক)
-        function applyFilters() {
-            let filtered = hotels;
-
-            // Name Search
-            const nameQuery = document.getElementById('name-filter').value.toLowerCase();
-            if (nameQuery) {
-                filtered = filtered.filter(h => h.name.toLowerCase().includes(nameQuery));
-            }
-
-            // Price Filter
-            const priceCheckboxes = document.querySelectorAll('.price-check:checked');
-            if (priceCheckboxes.length > 0) {
-                filtered = filtered.filter(h => {
-                    return Array.from(priceCheckboxes).some(cb => {
-                        const [min, max] = cb.value.split('-').map(Number);
-                        return h.price >= min && h.price <= max;
-                    });
-                });
-            }
-
-            // Star Filter
-            const starCheckboxes = document.querySelectorAll('.star-check:checked');
-            if (starCheckboxes.length > 0) {
-                const stars = Array.from(starCheckboxes).map(cb => Number(cb.value));
-                filtered = filtered.filter(h => stars.includes(h.stars));
-            }
-
-            currentHotels = filtered;
-            renderHotels(filtered);
-        }
-
-        // ৫. Sorting Logic
-        function sortHotels(criteria) {
-            let sorted = [...currentHotels];
-            if (criteria === 'price-asc') sorted.sort((a, b) => a.price - b.price);
-            if (criteria === 'price-desc') sorted.sort((a, b) => b.price - a.price);
-            if (criteria === 'rating-desc') sorted.sort((a, b) => b.rating - a.rating);
-
-            currentHotels = sorted;
-            renderHotels(sorted);
-            document.getElementById('sort-dropdown').classList.add('hidden'); // Close dropdown
-        }
-
-        function resetFilters() {
-            // Uncheck all boxes
-            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-            document.getElementById('name-filter').value = "";
-            currentHotels = [...hotels];
-            renderHotels(hotels);
-        }
-
-        // ৬. Event Listeners (ইভেন্ট যোগ করা)
-        document.querySelectorAll('.filter-checkbox').forEach(cb => {
-            cb.addEventListener('change', applyFilters);
-        });
-
-        document.getElementById('name-filter').addEventListener('input', applyFilters);
-
-        // প্রথমবার পেজ লোড হলে সব দেখাবে
-        renderHotels(hotels);
-
-
-
         document.addEventListener('DOMContentLoaded', function() {
+
             let hotelsData = [];
+            let currentHotels = [];
             let map = null;
             let markers = [];
 
@@ -434,7 +407,7 @@ if (
             // Fetch Hotels
             async function fetchHotels() {
                 const container = document.getElementById('hotels-list');
-                const btn = document.getElementById('search-hotels-btn');
+                const btn = document.getElementById('search-btn');
 
                 if (!container) return;
 
@@ -470,6 +443,7 @@ if (
                     }
 
                     hotelsData = data.hotels?.hotels || [];
+                    currentHotels = [...hotelsData];
 
                     if (hotelsData.length === 0) {
                         container.innerHTML = '<div style="padding: 40px; text-align: center;"><h3>😕 No hotels found</h3></div>';
@@ -484,8 +458,8 @@ if (
                     container.innerHTML = `
                         <div style="padding: 40px; text-align: center;">
                             <h3 style="color: #e53e3e; margin-bottom: 12px;">❌ Error Loading Hotels</h3>
-                            <p style="color: var(--text-secondary);">${error.message}</p>
-                            <button class="search-btn" style="margin-top: 16px;" onclick="window.location.reload()">🔄 Retry</button>
+                            <p style="color: #6b7280;">${error.message}</p>
+                            <button style="margin-top: 16px; padding: 8px 16px; background: #10b981; color: white; border-radius: 6px; cursor: pointer;" onclick="window.location.reload()">🔄 Retry</button>
                         </div>
                     `;
                 } finally {
@@ -582,7 +556,7 @@ if (
                         <div style="font-family: inherit;">
                             <strong>${hotel.name}</strong><br>
                             ${hotel.categoryName}<br>
-                            <span style="color: var(--primary-color); font-weight: bold;">${hotel.currency} ${hotel.minRate}</span>
+                            <span style="color: #10b981; font-weight: bold;">${hotel.currency} ${hotel.minRate}</span>
                         </div>
                     `);
 
@@ -595,22 +569,116 @@ if (
                 }
             }
 
-            // Price Filter
-            const priceRange = document.getElementById('price-range');
-            if (priceRange) {
-                priceRange.addEventListener('input', function() {
-                    const priceValue = document.getElementById('price-value');
-                    if (priceValue) {
-                        priceValue.textContent = '€' + this.value;
-                    }
+            function toggleDropdown(id) {
+                const menu = document.getElementById(id);
+                if (!menu) return;
+
+                const isHidden = menu.classList.contains('hidden');
+
+                document.querySelectorAll('.dropdown-menu').forEach(m => {
+                    m.classList.add('hidden');
                 });
+
+                if (isHidden) {
+                    menu.classList.remove('hidden');
+                }
             }
 
-            // Search Button
-            const searchBtn = document.getElementById('search-hotels-btn');
+            window.addEventListener('click', function(e) {
+                const dropdownContainer = e.target.closest('.dropdown-container');
+                const dropdownMenu = e.target.closest('.dropdown-menu');
+
+                if (!dropdownContainer && !dropdownMenu) {
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                        menu.classList.add('hidden');
+                    });
+                }
+            });
+
+            function applyFilters() {
+                let filtered = [...hotelsData];
+
+                const nameQuery = document.getElementById('name-filter').value.toLowerCase();
+                if (nameQuery) {
+                    filtered = filtered.filter(h => h.name.toLowerCase().includes(nameQuery));
+                }
+
+                const priceCheckboxes = document.querySelectorAll('.price-check:checked');
+                if (priceCheckboxes.length > 0) {
+                    filtered = filtered.filter(h => {
+                        return Array.from(priceCheckboxes).some(cb => {
+                            const [min, max] = cb.value.split('-').map(Number);
+                            return h.minRate >= min && h.minRate <= max;
+                        });
+                    });
+                }
+
+                const starCheckboxes = document.querySelectorAll('.star-check:checked');
+                if (starCheckboxes.length > 0) {
+                    const stars = Array.from(starCheckboxes).map(cb => Number(cb.value));
+                    const categoryStars = stars.map(s => s.toString());
+                    filtered = filtered.filter(h => {
+                        const hotelStars = h.categoryCode.match(/\d+/)?.[0];
+                        return categoryStars.includes(hotelStars);
+                    });
+                }
+
+                currentHotels = filtered;
+                displayHotels(filtered);
+                displayMarkersOnMap(filtered);
+            }
+
+            function sortHotels(criteria) {
+                let sorted = [...currentHotels];
+                if (criteria === 'price-asc') sorted.sort((a, b) => a.minRate - b.minRate);
+                if (criteria === 'price-desc') sorted.sort((a, b) => b.minRate - a.minRate);
+                if (criteria === 'rating-desc') {
+                    sorted.sort((a, b) => {
+                        const starsA = parseInt(a.categoryCode.match(/\d+/)?.[0] || '0');
+                        const starsB = parseInt(b.categoryCode.match(/\d+/)?.[0] || '0');
+                        return starsB - starsA;
+                    });
+                }
+
+                currentHotels = sorted;
+                displayHotels(sorted);
+                displayMarkersOnMap(sorted);
+
+                // Close dropdown after selection
+                const sortDropdown = document.getElementById('sort-dropdown');
+                if (sortDropdown) {
+                    sortDropdown.classList.add('hidden');
+                }
+            }
+
+            function resetFilters() {
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                document.getElementById('name-filter').value = "";
+                currentHotels = [...hotelsData];
+                displayHotels(hotelsData);
+                displayMarkersOnMap(hotelsData);
+            }
+
+            // Event Listeners
+            const searchBtn = document.getElementById('search-btn');
             if (searchBtn) {
                 searchBtn.addEventListener('click', fetchHotels);
             }
+
+            document.querySelectorAll('.filter-checkbox').forEach(cb => {
+                cb.addEventListener('change', applyFilters);
+            });
+
+            const nameFilter = document.getElementById('name-filter');
+            if (nameFilter) {
+                nameFilter.addEventListener('input', applyFilters);
+            }
+
+            // Make functions global for onclick handlers
+            window.toggleDropdown = toggleDropdown;
+            window.sortHotels = sortHotels;
+            window.resetFilters = resetFilters;
+            window.applyFilters = applyFilters;
 
             // Initialize
             initMap();
@@ -618,10 +686,6 @@ if (
         });
     </script>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-        crossorigin=""></script>
 </body>
 
 </html>
-
