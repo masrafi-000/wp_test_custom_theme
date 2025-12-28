@@ -9,7 +9,7 @@ $sections = get_post_meta(get_the_ID(), '_learnhub_sections', true);
 ?>
 
 <!-- Header Section (Static or Customize via Customizer) -->
-<div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-16">
+<div class="bg-linear-to-r from-purple-600 to-blue-600 text-white py-16">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h1 class="text-4xl md:text-5xl font-bold mb-4"><?php the_title(); ?></h1>
         <p class="text-xl text-purple-100">Dynamic Content Powered by WordPress Meta</p>

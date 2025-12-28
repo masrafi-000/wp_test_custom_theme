@@ -215,4 +215,62 @@ add_action('wp_enqueue_scripts', 'theme_runtime_css_vars');
 
 
 
+// function fetch_hotelbeds_data_handler()
+// {
 
+//     check_ajax_referer('my_api_nonce_action', 'security');
+
+
+//     $api_key = '1e8234c861f59b71091515efa946ed32';
+//     $shared_secret = '4c2cf69797';
+
+
+//     $timestamp = time();
+//     $signature_string = $api_key . $shared_secret . $timestamp;
+//     $signature = hash('sha256', $signature_string);
+
+
+//     $api_url = 'https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels?from=1&to=6';
+
+
+//    $ch = curl_init($api_url);
+//     curl_setopt_array($ch, [
+//         CURLOPT_POST => false,
+//         CURLOPT_RETURNTRANSFER => true,
+//         CURLOPT_HTTPHEADER => [
+//             'Content-Type: application/json',
+//             'Accept: application/json',
+//             'Api-key: ' . $api_key,
+//             'X-Signature: ' . $signature
+//         ],
+//         CURLOPT_TIMEOUT => 30
+//     ]);
+
+//     $response = curl_exec($ch);
+//     curl_close($ch);
+
+//     if (is_wp_error($response)) {
+//         wp_send_json_error('API connection failed: ' . $response->get_error_message());
+//     }
+
+
+//     $response_code = wp_remote_retrieve_response_code($response);
+//     if ($response_code != 200) {
+//         wp_send_json_error("API Error Code: " . $response_code);
+//     }
+
+
+//     $body = wp_remote_retrieve_body($response);
+//     $data = json_decode($body);
+
+//     if (json_last_error() !== JSON_ERROR_NONE) {
+//         wp_send_json_error('Invalid JSON received');
+//     }
+
+//     wp_send_json_success($data);
+//     wp_die();
+// }
+
+
+// add_action('wp_ajax_fetch_hotels', 'fetch_hotelbeds_data_handler');
+// add_action('wp_ajax_nopriv_fetch_hotels', 'fetch_hotelbeds_data_handler');
