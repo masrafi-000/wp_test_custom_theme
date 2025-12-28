@@ -67,44 +67,45 @@ get_header();
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 /**
- * Simple State Management System (Like a mini React Query)
+ * Simple State Management System (jQuery Version)
  */
 const app = {
-    // 1. Initial State
+    // 1. Initial State (Same as before)
     state: {
-        status: 'idle', // 'idle' | 'loading' | 'error' | 'success'
+        status: 'idle',
         data: [],
         error: null,
         isMutating: false
     },
 
-    // 2. DOM Elements
+    // 2. DOM Elements (jQuery Selectors)
+    // $ চিহ্ন দিয়ে ভেরিয়েবল নাম শুরু করা হয় যাতে বোঝা যায় এগুলি jQuery অবজেক্ট
     elements: {
-        container: document.getElementById('ui-container'),
-        viewLoading: document.getElementById('view-loading'),
-        viewError: document.getElementById('view-error'),
-        viewSuccess: document.getElementById('view-success'),
-        errorMsg: document.getElementById('error-msg'),
-        statusBadge: document.getElementById('status-indicator'),
-        refetchBtn: document.getElementById('refetch-btn'),
-        form: document.getElementById('mutation-form'),
-        submitBtn: document.getElementById('submit-btn'),
-        mutationLoader: document.getElementById('mutation-loader')
+        container: $('#ui-container'),
+        viewLoading: $('#view-loading'),
+        viewError: $('#view-error'),
+        viewSuccess: $('#view-success'),
+        errorMsg: $('#error-msg'),
+        statusBadge: $('#status-indicator'),
+        refetchBtn: $('#refetch-btn'),
+        form: $('#mutation-form'),
+        submitBtn: $('#submit-btn'),
+        mutationLoader: $('#mutation-loader')
     },
 
     // 3. Initialize
     init() {
-        // প্রথম লোডেই ডাটা ফেচ করা (React এর useEffect এর মতো)
         this.fetchPosts();
 
-        // ইভেন্ট লিসেনার সেট করা
-        this.elements.refetchBtn.addEventListener('click', () => this.fetchPosts());
-        this.elements.form.addEventListener('submit', (e) => this.handleMutation(e));
+        // Event Listeners (jQuery Style)
+        this.elements.refetchBtn.on('click', () => this.fetchPosts());
+        this.elements.form.on('submit', (e) => this.handleMutation(e));
     },
 
-    // 4. State Update & Render Function (React এর setState + render)
+    // 4. State Update & Render
     setState(newState) {
         this.state = { ...this.state, ...newState };
         this.render();
@@ -114,103 +115,100 @@ const app = {
         const { status, error, data, isMutating } = this.state;
         const el = this.elements;
 
-        // স্ট্যাটাস ব্যাজ আপডেট
-        el.statusBadge.innerText = status.toUpperCase();
-        el.statusBadge.className = `text-xs font-bold px-2 py-1 rounded ${
-            status === 'success' ? 'bg-green-100 text-green-700' :
-            status === 'error' ? 'bg-red-100 text-red-700' :
-            'bg-blue-100 text-blue-700'
-        }`;
+        // স্ট্যাটাস ব্যাজ আপডেট (.text(), .removeClass(), .addClass())
+        el.statusBadge.text(status.toUpperCase());
+        
+        // সব ক্লাস রিমুভ করে নতুন ক্লাস দেওয়া
+        el.statusBadge.removeClass('bg-green-100 text-green-700 bg-red-100 text-red-700 bg-blue-100 text-blue-700');
+        if (status === 'success') el.statusBadge.addClass('bg-green-100 text-green-700');
+        else if (status === 'error') el.statusBadge.addClass('bg-red-100 text-red-700');
+        else el.statusBadge.addClass('bg-blue-100 text-blue-700');
 
-        // View কন্ট্রোল (Loading/Error/Success)
-        el.viewLoading.classList.toggle('hidden', status !== 'loading');
-        el.viewError.classList.toggle('hidden', status !== 'error');
-        el.viewSuccess.classList.toggle('hidden', status !== 'success');
+        // View কন্ট্রোল (.toggleClass() দিয়ে hide/show)
+        // jQuery তে সরাসরি .hide() বা .show() ও ব্যবহার করা যায়, কিন্তু এখানে আমরা Tailwind এর 'hidden' ক্লাস টগল করছি
+        el.viewLoading.toggleClass('hidden', status !== 'loading');
+        el.viewError.toggleClass('hidden', status !== 'error');
+        el.viewSuccess.toggleClass('hidden', status !== 'success');
 
-        // এরর মেসেজ সেট করা
         if (status === 'error') {
-            el.errorMsg.innerText = error;
+            el.errorMsg.text(error);
         }
 
-        // ডাটা লিস্ট রেন্ডার করা (Success হলে)
+        // ডাটা রেন্ডার (.html())
         if (status === 'success' && data) {
-            el.viewSuccess.innerHTML = data.map(post => `
+            const htmlContent = data.map(post => `
                 <div class="border p-4 rounded hover:bg-gray-50 transition">
                     <h4 class="font-bold text-gray-800 capitalize">${post.title}</h4>
                     <p class="text-gray-600 text-sm mt-1">${post.body.substring(0, 100)}...</p>
                 </div>
             `).join('');
+            el.viewSuccess.html(htmlContent);
         }
 
-        // মিউটেশন (বাটন ডিজেবল ও লোডার)
-        el.submitBtn.disabled = isMutating;
-        el.mutationLoader.classList.toggle('hidden', !isMutating);
-        el.submitBtn.querySelector('span').innerText = isMutating ? 'Saving...' : 'Publish Post';
+        // মিউটেশন (.prop() বা .attr())
+        el.submitBtn.prop('disabled', isMutating);
+        el.mutationLoader.toggleClass('hidden', !isMutating);
+        el.submitBtn.find('span').text(isMutating ? 'Saving...' : 'Publish Post');
     },
 
-    // 5. Query Function (Data Fetching)
+    // 5. Query Function ($.ajax instead of fetch)
     fetchPosts() {
-        // লোডিং স্টেট সেট করা
         this.setState({ status: 'loading', error: null });
 
-        fetch('https://jsonplaceholder.typicode.com/posts')
-            .then(res => {
-                if (!res.ok) throw new Error('Failed to fetch data');
-                return res.json();
-            })
-            .then(data => {
-                // সাকসেস স্টেট সেট করা
-                // (অল্প ডিলে দিচ্ছি যাতে লোডার বোঝা যায়)
+        $.ajax({
+            url: 'https://jsonplaceholder.typicode.com/posts',
+            method: 'GET',
+            dataType: 'json',
+            success: (data) => {
                 setTimeout(() => {
                     this.setState({ status: 'success', data: data });
-                }, 500); 
-            })
-            .catch(err => {
-                // এরর স্টেট সেট করা
-                this.setState({ status: 'error', error: err.message });
-            });
+                }, 2000);
+            },
+            error: (xhr, status, err) => {
+                this.setState({ status: 'error', error: 'Failed to fetch data' });
+            }
+        });
     },
 
-    // 6. Mutation Function (Data Posting)
+    // 6. Mutation Function
     handleMutation(e) {
         e.preventDefault();
         
-        const title = document.getElementById('post-title').value;
-        const body = document.getElementById('post-body').value;
+        // jQuery .val()
+        const title = $('#post-title').val();
+        const body = $('#post-body').val();
 
-        // মিউটেশন শুরু
         this.setState({ isMutating: true });
 
-        fetch('https://jsonplaceholder.typicode.com/posts', {
+        $.ajax({
+            url: 'https://jsonplaceholder.typicode.com/posts',
             method: 'POST',
-            body: JSON.stringify({ title, body}),
-            headers: { 'Content-type': 'application/json; charset=UTF-8' },
-        })
-        .then(res => res.json())
-        .then(newPost => {
-            // Optimistic Update এর মতো নতুন ডাটা লিস্টের শুরুতে যোগ করা
-            const currentData = this.state.data;
-            const updatedData = [newPost, ...currentData];
-            
-            this.setState({ 
-                isMutating: false, 
-                data: updatedData,
-                status: 'success' // নিশ্চিত করা যে আমরা সাকসেস ভিউতে আছি
-            });
+            contentType: 'application/json; charset=UTF-8',
+            data: JSON.stringify({ title, body }),
+            success: (newPost) => {
+                const currentData = this.state.data;
+                const updatedData = [newPost, ...currentData];
+                
+                this.setState({ 
+                    isMutating: false, 
+                    data: updatedData,
+                    status: 'success'
+                });
 
-            // ফর্ম রিসেট
-            e.target.reset();
-            alert('Post Created Successfully! (ID: ' + newPost.id + ')');
-        })
-        .catch(err => {
-            this.setState({ isMutating: false });
-            alert('Error creating post');
+                // ফর্ম রিসেট
+                $('#mutation-form')[0].reset(); // jQuery অবজেক্ট থেকে DOM এলিমেন্ট নিয়ে রিসেট
+                alert('Post Created Successfully! (ID: ' + newPost.id + ')');
+            },
+            error: () => {
+                this.setState({ isMutating: false });
+                alert('Error creating post');
+            }
         });
     }
 };
 
-// অ্যাপ চালু করা
-document.addEventListener('DOMContentLoaded', () => {
+// অ্যাপ চালু করা (jQuery Ready)
+$(document).ready(() => {
     app.init();
 });
 </script>
