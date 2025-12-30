@@ -1,19 +1,28 @@
 <?php
 /*
-Template Name: Map Picker With Country Select
-Description: Select country to move map, plus manual edit options
+Template Name: Map Picker With Contact & Desc
+Description: Organization info with Description/Contact and Map Picker
 */
 get_header();
 ?>
 
 <!-- 1. CSS Assets -->
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
 <style>
-    #map { height: 420px; width: 100%; z-index: 1; border-radius: 8px; border: 2px solid #e5e7eb; }
-    .leaflet-container { font-family: inherit; }
-    
+    #map {
+        height: 450px;
+        width: 100%;
+        z-index: 1;
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
+    }
+
+    .leaflet-container {
+        font-family: inherit;
+    }
+
     .custom-input {
         width: 100%;
         padding: 9px 12px;
@@ -23,19 +32,32 @@ get_header();
         background-color: #fff;
         transition: all 0.2s;
     }
+
     .custom-input:focus {
         outline: none;
         border-color: #2563eb;
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     }
+
     .custom-input.read-only {
         background-color: #f3f4f6;
         color: #6b7280;
         cursor: not-allowed;
     }
-    label { 
-        font-size: 11px; font-weight: 700; color: #4b5563; 
-        text-transform: uppercase; margin-bottom: 5px; display: block; 
+
+    /* Specific style for Textarea */
+    textarea.custom-input {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #4b5563;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+        display: block;
     }
 </style>
 
@@ -43,32 +65,34 @@ get_header();
     <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         <!-- LEFT SIDE: Organization Info -->
-        <div class="lg:col-span-4 space-y-6 border-r pr-0 lg:pr-6 border-gray-100">
+        <div class="lg:col-span-4 space-y-5 border-r pr-0 lg:pr-6 border-gray-100">
             <h2 class="text-xl font-bold text-blue-700 border-b pb-2">1. Organization Info</h2>
-            
+
+            <!-- Field: Org Name -->
             <div>
                 <label>Organization Name</label>
                 <input type="text" id="org-name" class="custom-input" placeholder="Ex: Super Tech Ltd">
             </div>
 
-            <div>
-                <label>Category</label>
-                <select id="org-category" class="custom-input">
-                    <option value="">Select Category</option>
-                    <option value="Retail">Retail Store</option>
-                    <option value="Corporate">Corporate Office</option>
-                    <option value="Warehouse">Warehouse</option>
-                    <option value="Restaurant">Restaurant</option>
-                    <option value="IT">IT / Software</option>
-                </select>
-            </div>
-
+            <!-- Field: Owner Name -->
             <div>
                 <label>Owner Name</label>
                 <input type="text" id="owner-name" class="custom-input" placeholder="Owner Name">
             </div>
 
-            <div class="bg-blue-50 p-4 rounded border border-blue-100">
+            <!-- NEW Field: Contact Number -->
+            <div>
+                <label>Contact Number</label>
+                <input type="text" id="org-contact" class="custom-input" placeholder="+880 1700 000000">
+            </div>
+
+            <!-- NEW Field: Description (Textarea) -->
+            <div>
+                <label>Description</label>
+                <textarea id="org-desc" class="custom-input" rows="3" placeholder="Write a short description about the organization..."></textarea>
+            </div>
+
+            <div class="bg-blue-50 p-4 rounded border border-blue-100 mt-4">
                 <p class="text-xs text-blue-800 font-bold mb-1">TIP:</p>
                 <p class="text-xs text-gray-600">Select a Country first, then drag the marker to the exact street location.</p>
             </div>
@@ -88,8 +112,8 @@ get_header();
 
             <!-- ADDRESS FIELDS -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-5 rounded-xl border border-gray-200">
-                
-                <!-- Country Select (NEW FEATURE) -->
+
+                <!-- Country Select -->
                 <div class="col-span-1 md:col-span-1">
                     <label for="addr-country" class="text-blue-600">Select Country</label>
                     <select id="addr-country" class="custom-input font-semibold text-blue-900 bg-blue-50 border-blue-200">
@@ -145,8 +169,8 @@ get_header();
             </div>
 
             <!-- Submit -->
-            <button id="save-btn" type="button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition transform active:scale-95">
-                SAVE & CONSOLE LOG
+            <button id="save-btn" type="button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition transform active:scale-95 text-lg">
+                SAVE
             </button>
         </div>
     </div>
@@ -157,180 +181,215 @@ get_header();
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <script>
-jQuery(document).ready(function($) {
+    jQuery(document).ready(function($) {
 
-    // --- 1. CONFIGURATION ---
-    const AJAX_URL = "<?php echo admin_url('admin-ajax.php'); ?>";
-    let timer;
+        // --- 1. CONFIGURATION ---
+        const AJAX_URL = "<?php echo admin_url('admin-ajax.php'); ?>";
+        let timer;
 
-    // Default Country Coordinates (Center Points)
-    // You can add more countries here
-    const COUNTRY_COORDS = {
-        'BD': { lat: 23.6850, lng: 90.3563, zoom: 7 },
-        'US': { lat: 37.0902, lng: -95.7129, zoom: 4 },
-        'GB': { lat: 55.3781, lng: -3.4360, zoom: 6 },
-        'CA': { lat: 56.1304, lng: -106.3468, zoom: 4 },
-        'AU': { lat: -25.2744, lng: 133.7751, zoom: 4 },
-        'IN': { lat: 20.5937, lng: 78.9629, zoom: 5 },
-        'PK': { lat: 30.3753, lng: 69.3451, zoom: 6 },
-        'SA': { lat: 23.8859, lng: 45.0792, zoom: 6 },
-        'AE': { lat: 23.4241, lng: 53.8478, zoom: 7 },
-        'SG': { lat: 1.3521, lng: 103.8198, zoom: 11 },
-        'MY': { lat: 4.2105, lng: 101.9758, zoom: 6 },
-        'JP': { lat: 36.2048, lng: 138.2529, zoom: 5 },
-    };
-
-    // Default Starting Point (Dhaka, Bangladesh)
-    const START_LAT = 23.8103;
-    const START_LNG = 90.4125;
-
-    // --- 2. LEAFLET SETUP ---
-    // Fix icons
-    delete L.Icon.Default.prototype._getIconUrl;
-    L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    });
-
-    if ($('#map').length === 0) return;
-
-    // Init Map
-    const map = L.map('map').setView([START_LAT, START_LNG], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19, attribution: '© OpenStreetMap'
-    }).addTo(map);
-
-    const marker = L.marker([START_LAT, START_LNG], { draggable: true }).addTo(map);
-
-    // --- 3. COUNTRY CHANGE LOGIC ---
-    $('#addr-country').on('change', function() {
-        const countryCode = $(this).val();
-        
-        if(COUNTRY_COORDS[countryCode]) {
-            const data = COUNTRY_COORDS[countryCode];
-            
-            // 1. Move Map
-            map.flyTo([data.lat, data.lng], data.zoom, {
-                duration: 1.5 // Animation duration in seconds
-            });
-
-            // 2. Move Marker
-            marker.setLatLng([data.lat, data.lng]);
-
-            // 3. Update Inputs & Fetch basic info
-            // Note: We don't fetch full address immediately to keep it clean, 
-            // or we can call fetchAddress() if you want the center point details.
-            $('#val-lat').val(data.lat.toFixed(6));
-            $('#val-lng').val(data.lng.toFixed(6));
-            
-            // Trigger geocode to fill State/City/Zip if available at center
-            triggerGeocode(data.lat, data.lng);
-        }
-    });
-
-    // --- 4. GEOCODING FUNCTION ---
-    function fetchAddress(lat, lng) {
-        $('#status-msg').text('Fetching details...').addClass('text-orange-500').removeClass('text-green-600');
-        
-        $('#val-lat').val(lat.toFixed(6));
-        $('#val-lng').val(lng.toFixed(6));
-
-        $.ajax({
-            url: AJAX_URL,
-            method: 'GET',
-            dataType: 'json',
-            data: {
-                action: 'get_osm_address',
-                lat: lat,
-                lon: lng
+        const COUNTRY_COORDS = {
+            'BD': {
+                lat: 23.6850,
+                lng: 90.3563,
+                zoom: 7
             },
-            success: function(data) {
-                $('#status-msg').text('Address Found').addClass('text-green-600').removeClass('text-orange-500');
-                
-                const addr = data.address || {};
-
-                // Fill Inputs
-                $('#addr-house').val(addr.house_number || addr.building || '');
-                $('#addr-road').val(addr.road || addr.street || '');
-                $('#addr-city').val(addr.city || addr.town || addr.suburb || '');
-                $('#addr-state').val(addr.state || addr.division || '');
-                $('#addr-zip').val(addr.postcode || '');
-                
-                // Smart Country Sync:
-                // If the user dragged the marker to a different country, 
-                // we try to update the dropdown automatically if the code matches.
-                const detectedCountryCode = addr.country_code ? addr.country_code.toUpperCase() : '';
-                if(detectedCountryCode) {
-                   // Check if this code exists in our dropdown before setting
-                   if ($(`#addr-country option[value='${detectedCountryCode}']`).length > 0) {
-                       $('#addr-country').val(detectedCountryCode);
-                   }
-                }
-
-                marker.bindPopup(`<b>${addr.road || 'Location'}</b><br>${addr.city || ''}`).openPopup();
+            'US': {
+                lat: 37.0902,
+                lng: -95.7129,
+                zoom: 4
             },
-            error: function() {
-                $('#status-msg').text('Error fetching data').addClass('text-red-500');
-            }
-        });
-    }
-
-    // Debounce
-    function triggerGeocode(lat, lng) {
-        clearTimeout(timer);
-        timer = setTimeout(() => fetchAddress(lat, lng), 1000);
-    }
-
-    // --- 5. MAP EVENTS ---
-    marker.on('dragend', function() {
-        const pos = marker.getLatLng();
-        triggerGeocode(pos.lat, pos.lng);
-    });
-
-    map.on('click', function(e) {
-        const { lat, lng } = e.latlng;
-        marker.setLatLng([lat, lng]);
-        triggerGeocode(lat, lng);
-    });
-
-    // Initial run
-    triggerGeocode(START_LAT, START_LNG);
-
-    // --- 6. SAVE BUTTON ---
-    $('#save-btn').on('click', function() {
-        const finalData = {
-            organization: {
-                name: $('#org-name').val(),
-                category: $('#org-category').val(),
-                owner: $('#owner-name').val()
+            'GB': {
+                lat: 55.3781,
+                lng: -3.4360,
+                zoom: 6
             },
-            address: {
-                country: $('#addr-country option:selected').text(), // Get text name (e.g., Bangladesh)
-                country_code: $('#addr-country').val(), // Get code (e.g., BD)
-                state: $('#addr-state').val(),
-                city: $('#addr-city').val(),
-                zip: $('#addr-zip').val(),
-                road: $('#addr-road').val(),
-                house: $('#addr-house').val(),
-                latitude: $('#val-lat').val(),
-                longitude: $('#val-lng').val()
-            }
+            'CA': {
+                lat: 56.1304,
+                lng: -106.3468,
+                zoom: 4
+            },
+            'AU': {
+                lat: -25.2744,
+                lng: 133.7751,
+                zoom: 4
+            },
+            'IN': {
+                lat: 20.5937,
+                lng: 78.9629,
+                zoom: 5
+            },
+            'PK': {
+                lat: 30.3753,
+                lng: 69.3451,
+                zoom: 6
+            },
+            'SA': {
+                lat: 23.8859,
+                lng: 45.0792,
+                zoom: 6
+            },
+            'AE': {
+                lat: 23.4241,
+                lng: 53.8478,
+                zoom: 7
+            },
+            'SG': {
+                lat: 1.3521,
+                lng: 103.8198,
+                zoom: 11
+            },
+            'MY': {
+                lat: 4.2105,
+                lng: 101.9758,
+                zoom: 6
+            },
+            'JP': {
+                lat: 36.2048,
+                lng: 138.2529,
+                zoom: 5
+            },
         };
 
-        if(!finalData.organization.name) {
-            alert('Please enter Organization Name');
-            return;
+        const START_LAT = 23.8103;
+        const START_LNG = 90.4125;
+
+        // --- 2. LEAFLET SETUP ---
+        delete L.Icon.Default.prototype._getIconUrl;
+        L.Icon.Default.mergeOptions({
+            iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        });
+
+        if ($('#map').length === 0) return;
+
+        const map = L.map('map').setView([START_LAT, START_LNG], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        const marker = L.marker([START_LAT, START_LNG], {
+            draggable: true
+        }).addTo(map);
+
+        // --- 3. COUNTRY CHANGE LOGIC ---
+        $('#addr-country').on('change', function() {
+            const countryCode = $(this).val();
+
+            if (COUNTRY_COORDS[countryCode]) {
+                const data = COUNTRY_COORDS[countryCode];
+                map.flyTo([data.lat, data.lng], data.zoom, {
+                    duration: 1.5
+                });
+                marker.setLatLng([data.lat, data.lng]);
+                $('#val-lat').val(data.lat.toFixed(6));
+                $('#val-lng').val(data.lng.toFixed(6));
+                triggerGeocode(data.lat, data.lng);
+            }
+        });
+
+        // --- 4. GEOCODING FUNCTION ---
+        function fetchAddress(lat, lng) {
+            $('#status-msg').text('Fetching details...').addClass('text-orange-500').removeClass('text-green-600');
+
+            $('#val-lat').val(lat.toFixed(6));
+            $('#val-lng').val(lng.toFixed(6));
+
+            $.ajax({
+                url: AJAX_URL,
+                method: 'GET',
+                dataType: 'json',
+                data: {
+                    action: 'get_osm_address',
+                    lat: lat,
+                    lon: lng
+                },
+                success: function(data) {
+                    $('#status-msg').text('Address Found').addClass('text-green-600').removeClass('text-orange-500');
+
+                    const addr = data.address || {};
+
+                    $('#addr-house').val(addr.house_number || addr.building || '');
+                    $('#addr-road').val(addr.road || addr.street || '');
+                    $('#addr-city').val(addr.city || addr.town || addr.suburb || '');
+                    $('#addr-state').val(addr.state || addr.division || '');
+                    $('#addr-zip').val(addr.postcode || '');
+
+                    const detectedCountryCode = addr.country_code ? addr.country_code.toUpperCase() : '';
+                    if (detectedCountryCode && $(`#addr-country option[value='${detectedCountryCode}']`).length > 0) {
+                        $('#addr-country').val(detectedCountryCode);
+                    }
+
+                    marker.bindPopup(`<b>${addr.road || 'Location'}</b><br>${addr.city || ''}`).openPopup();
+                },
+                error: function() {
+                    $('#status-msg').text('Error fetching data').addClass('text-red-500');
+                }
+            });
         }
 
-        console.clear();
-        console.log("%c ✅ DATA SUBMITTED ", "background: green; color: white; padding: 5px; font-weight: bold;");
-        console.log(JSON.stringify(finalData, null, 4));
-        
-        alert('Data logged to Console!');
-    });
+        function triggerGeocode(lat, lng) {
+            clearTimeout(timer);
+            timer = setTimeout(() => fetchAddress(lat, lng), 1000);
+        }
 
-});
+        // --- 5. MAP EVENTS ---
+        marker.on('dragend', function() {
+            const pos = marker.getLatLng();
+            triggerGeocode(pos.lat, pos.lng);
+        });
+
+        map.on('click', function(e) {
+            const {
+                lat,
+                lng
+            } = e.latlng;
+            marker.setLatLng([lat, lng]);
+            triggerGeocode(lat, lng);
+        });
+
+        triggerGeocode(START_LAT, START_LNG);
+
+        // --- 6. SAVE BUTTON ---
+        $('#save-btn').on('click', function() {
+
+            // Updated Data Structure with Description and Contact
+            const finalData = {
+                organization: {
+                    name: $('#org-name').val(),
+                    owner_name: $('#owner-name').val(),
+                    contact_number: $('#org-contact').val(), // New Field
+                    description: $('#org-desc').val() // New Field
+                },
+                address: {
+                    country: $('#addr-country option:selected').text(),
+                    country_code: $('#addr-country').val(),
+                    state: $('#addr-state').val(),
+                    city: $('#addr-city').val(),
+                    zip: $('#addr-zip').val(),
+                    road: $('#addr-road').val(),
+                    house: $('#addr-house').val(),
+                    latitude: $('#val-lat').val(),
+                    longitude: $('#val-lng').val()
+                }
+            };
+
+            // Basic Validation
+            if (!finalData.organization.name) {
+                alert('Please enter Organization Name');
+                $('#org-name').focus();
+                return;
+            }
+
+            console.clear();
+            console.log("%c ✅ DATA SUBMITTED ", "background: #10B981; color: white; padding: 6px; font-weight: bold; border-radius: 4px;");
+            console.log(JSON.stringify(finalData, null, 4));
+
+            alert('Data logged to Console! (F12)');
+        });
+
+    });
 </script>
 
 <?php get_footer(); ?>
