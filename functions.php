@@ -274,3 +274,45 @@ add_action('wp_enqueue_scripts', 'theme_runtime_css_vars');
 
 // add_action('wp_ajax_fetch_hotels', 'fetch_hotelbeds_data_handler');
 // add_action('wp_ajax_nopriv_fetch_hotels', 'fetch_hotelbeds_data_handler');
+
+
+
+
+
+
+
+
+
+// functions.php এর একদম নিচে এটি পেস্ট করুন
+
+add_action('wp_ajax_get_osm_address', 'wporg_get_address_proxy');
+add_action('wp_ajax_nopriv_get_osm_address', 'wporg_get_address_proxy');
+
+function wporg_get_address_proxy() {
+    // 1. Get Coordinates
+    $lat = isset($_GET['lat']) ? sanitize_text_field($_GET['lat']) : '';
+    $lon = isset($_GET['lon']) ? sanitize_text_field($_GET['lon']) : '';
+
+    if (!$lat || !$lon) {
+        wp_send_json_error('Invalid coordinates');
+    }
+
+    // 2. Call Nominatim API from PHP (Server to Server)
+    // PHP তে User-Agent সেট করা খুব সহজ এবং এখানে কোনো CORS এরর আসে না।
+    $api_url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={$lat}&lon={$lon}&accept-language=en";
+
+    $response = wp_remote_get($api_url, array(
+        'headers' => array(
+            'User-Agent' => get_bloginfo('name') . ' MapPicker/1.0 (admin@' . $_SERVER['HTTP_HOST'] . ')' 
+        )
+    ));
+
+    // 3. Return Data back to JavaScript
+    if (is_wp_error($response)) {
+        wp_send_json_error('API Failed');
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    echo $body; // Send raw JSON back
+    wp_die();
+}
