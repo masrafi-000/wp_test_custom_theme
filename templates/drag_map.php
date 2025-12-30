@@ -1,7 +1,7 @@
 <?php
 /*
-Template Name: Map Data Collector
-Description: Map picker where users can manually edit auto-detected address fields
+Template Name: Map Picker With Country Select
+Description: Select country to move map, plus manual edit options
 */
 get_header();
 ?>
@@ -11,17 +11,15 @@ get_header();
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
 <style>
-    #map { height: 400px; width: 100%; z-index: 1; border-radius: 8px; }
+    #map { height: 420px; width: 100%; z-index: 1; border-radius: 8px; border: 2px solid #e5e7eb; }
     .leaflet-container { font-family: inherit; }
     
-    /* Input Styling */
     .custom-input {
         width: 100%;
-        padding: 8px 12px;
+        padding: 9px 12px;
         border: 1px solid #d1d5db;
         border-radius: 6px;
         font-size: 14px;
-        color: #1f2937;
         background-color: #fff;
         transition: all 0.2s;
     }
@@ -30,62 +28,56 @@ get_header();
         border-color: #2563eb;
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     }
-    /* Read-only inputs (Lat/Lng) look different */
     .custom-input.read-only {
         background-color: #f3f4f6;
         color: #6b7280;
         cursor: not-allowed;
     }
     label { 
-        font-size: 11px; 
-        font-weight: 700; 
-        color: #4b5563; 
-        text-transform: uppercase; 
-        margin-bottom: 4px; 
-        display: block; 
+        font-size: 11px; font-weight: 700; color: #4b5563; 
+        text-transform: uppercase; margin-bottom: 5px; display: block; 
     }
 </style>
 
 <div class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
-    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-        <!-- LEFT COLUMN: Organization Info (4 Columns) -->
-        <div class="lg:col-span-4 space-y-5 border-r pr-0 lg:pr-6 border-gray-100">
-            <h2 class="text-xl font-bold text-gray-800 border-b pb-2 text-blue-600">1. Organization Info</h2>
+        <!-- LEFT SIDE: Organization Info -->
+        <div class="lg:col-span-4 space-y-6 border-r pr-0 lg:pr-6 border-gray-100">
+            <h2 class="text-xl font-bold text-blue-700 border-b pb-2">1. Organization Info</h2>
             
             <div>
-                <label for="org-name">Organization / Shop Name</label>
-                <input type="text" id="org-name" class="custom-input" placeholder="Ex: Bhai Bhai Store">
+                <label>Organization Name</label>
+                <input type="text" id="org-name" class="custom-input" placeholder="Ex: Super Tech Ltd">
             </div>
 
             <div>
-                <label for="org-category">Category</label>
+                <label>Category</label>
                 <select id="org-category" class="custom-input">
                     <option value="">Select Category</option>
                     <option value="Retail">Retail Store</option>
                     <option value="Corporate">Corporate Office</option>
                     <option value="Warehouse">Warehouse</option>
                     <option value="Restaurant">Restaurant</option>
-                    <option value="Pharmacy">Pharmacy</option>
-                    <option value="Other">Other</option>
+                    <option value="IT">IT / Software</option>
                 </select>
             </div>
 
             <div>
-                <label for="owner-name">Owner Name</label>
-                <input type="text" id="owner-name" class="custom-input" placeholder="Ex: Rahim Uddin">
+                <label>Owner Name</label>
+                <input type="text" id="owner-name" class="custom-input" placeholder="Owner Name">
             </div>
 
-            <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-6">
-                <p class="text-xs text-yellow-800 font-bold mb-1">NOTE:</p>
-                <p class="text-xs text-gray-700">Please drag the map marker first to auto-fill the address. If the address is incomplete, you can <b>edit the fields manually</b>.</p>
+            <div class="bg-blue-50 p-4 rounded border border-blue-100">
+                <p class="text-xs text-blue-800 font-bold mb-1">TIP:</p>
+                <p class="text-xs text-gray-600">Select a Country first, then drag the marker to the exact street location.</p>
             </div>
         </div>
 
-        <!-- RIGHT COLUMN: Map & Editable Address (8 Columns) -->
+        <!-- RIGHT SIDE: Map & Address -->
         <div class="lg:col-span-8 space-y-5">
             <div class="flex justify-between items-end border-b pb-2">
-                <h2 class="text-xl font-bold text-gray-800 text-blue-600">2. Location & Address</h2>
+                <h2 class="text-xl font-bold text-blue-700">2. Location Details</h2>
                 <span id="status-msg" class="text-xs font-bold text-gray-400">Map Ready</span>
             </div>
 
@@ -94,64 +86,69 @@ get_header();
                 <div id="map"></div>
             </div>
 
-            <!-- EDITABLE ADDRESS FIELDS Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+            <!-- ADDRESS FIELDS -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-5 rounded-xl border border-gray-200">
                 
-                <!-- House No (Editable) -->
-                <div class="col-span-1">
-                    <label for="addr-house">House / Holding</label>
-                    <input type="text" id="addr-house" class="custom-input" placeholder="Ex: 12/A">
+                <!-- Country Select (NEW FEATURE) -->
+                <div class="col-span-1 md:col-span-1">
+                    <label for="addr-country" class="text-blue-600">Select Country</label>
+                    <select id="addr-country" class="custom-input font-semibold text-blue-900 bg-blue-50 border-blue-200">
+                        <option value="BD">Bangladesh</option>
+                        <option value="US">United States</option>
+                        <option value="GB">United Kingdom</option>
+                        <option value="CA">Canada</option>
+                        <option value="AU">Australia</option>
+                        <option value="IN">India</option>
+                        <option value="PK">Pakistan</option>
+                        <option value="SA">Saudi Arabia</option>
+                        <option value="AE">UAE (Dubai)</option>
+                        <option value="SG">Singapore</option>
+                        <option value="MY">Malaysia</option>
+                        <option value="JP">Japan</option>
+                    </select>
                 </div>
 
-                <!-- Road No (Editable) -->
-                <div class="col-span-1">
-                    <label for="addr-road">Road / Street</label>
-                    <input type="text" id="addr-road" class="custom-input" placeholder="Ex: Road 5">
-                </div>
-
-                <!-- City (Editable) -->
-                <div class="col-span-1">
-                    <label for="addr-city">City / Area</label>
-                    <input type="text" id="addr-city" class="custom-input" placeholder="City">
-                </div>
-
-                <!-- Zipcode (Editable) -->
-                <div class="col-span-1">
-                    <label for="addr-zip">Zipcode</label>
-                    <input type="text" id="addr-zip" class="custom-input" placeholder="Postcode">
-                </div>
-
-                <!-- State (Editable) -->
-                <div class="col-span-1">
-                    <label for="addr-state">State / Division</label>
+                <div class="col-span-1 md:col-span-1">
+                    <label>State / Division</label>
                     <input type="text" id="addr-state" class="custom-input" placeholder="State">
                 </div>
 
-                <!-- Country (Editable) -->
-                <div class="col-span-1">
-                    <label for="addr-country">Country</label>
-                    <input type="text" id="addr-country" class="custom-input" placeholder="Country">
+                <div class="col-span-1 md:col-span-1">
+                    <label>City / Area</label>
+                    <input type="text" id="addr-city" class="custom-input" placeholder="City">
                 </div>
 
-                <!-- Latitude (Read Only) -->
+                <div class="col-span-1 md:col-span-1">
+                    <label>Zipcode</label>
+                    <input type="text" id="addr-zip" class="custom-input" placeholder="Zip">
+                </div>
+
+                <div class="col-span-1 md:col-span-2">
+                    <label>Road / Street</label>
+                    <input type="text" id="addr-road" class="custom-input" placeholder="Road No / Name">
+                </div>
+
+                <div class="col-span-1 md:col-span-2">
+                    <label>House / Building</label>
+                    <input type="text" id="addr-house" class="custom-input" placeholder="House No / Name">
+                </div>
+
+                <!-- Read Only Coords -->
                 <div class="col-span-1">
                     <label>Latitude</label>
                     <input type="text" id="val-lat" class="custom-input read-only" readonly>
                 </div>
-
-                <!-- Longitude (Read Only) -->
                 <div class="col-span-1">
                     <label>Longitude</label>
                     <input type="text" id="val-lng" class="custom-input read-only" readonly>
                 </div>
             </div>
 
-            <!-- Submit Button -->
-            <button id="save-btn" type="button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transform transition active:scale-95 text-base mt-2">
-                SAVE & CONSOLE LOG JSON
+            <!-- Submit -->
+            <button id="save-btn" type="button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition transform active:scale-95">
+                SAVE & CONSOLE LOG
             </button>
         </div>
-
     </div>
 </div>
 
@@ -162,14 +159,33 @@ get_header();
 <script>
 jQuery(document).ready(function($) {
 
-    // --- CONFIG ---
-    // Ensure you have the Proxy function in functions.php
+    // --- 1. CONFIGURATION ---
     const AJAX_URL = "<?php echo admin_url('admin-ajax.php'); ?>";
-    const DEFAULT_LAT = 23.8103;
-    const DEFAULT_LNG = 90.4125;
     let timer;
 
-    // --- LEAFLET ICON FIX ---
+    // Default Country Coordinates (Center Points)
+    // You can add more countries here
+    const COUNTRY_COORDS = {
+        'BD': { lat: 23.6850, lng: 90.3563, zoom: 7 },
+        'US': { lat: 37.0902, lng: -95.7129, zoom: 4 },
+        'GB': { lat: 55.3781, lng: -3.4360, zoom: 6 },
+        'CA': { lat: 56.1304, lng: -106.3468, zoom: 4 },
+        'AU': { lat: -25.2744, lng: 133.7751, zoom: 4 },
+        'IN': { lat: 20.5937, lng: 78.9629, zoom: 5 },
+        'PK': { lat: 30.3753, lng: 69.3451, zoom: 6 },
+        'SA': { lat: 23.8859, lng: 45.0792, zoom: 6 },
+        'AE': { lat: 23.4241, lng: 53.8478, zoom: 7 },
+        'SG': { lat: 1.3521, lng: 103.8198, zoom: 11 },
+        'MY': { lat: 4.2105, lng: 101.9758, zoom: 6 },
+        'JP': { lat: 36.2048, lng: 138.2529, zoom: 5 },
+    };
+
+    // Default Starting Point (Dhaka, Bangladesh)
+    const START_LAT = 23.8103;
+    const START_LNG = 90.4125;
+
+    // --- 2. LEAFLET SETUP ---
+    // Fix icons
     delete L.Icon.Default.prototype._getIconUrl;
     L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -179,19 +195,44 @@ jQuery(document).ready(function($) {
 
     if ($('#map').length === 0) return;
 
-    // --- INIT MAP ---
-    const map = L.map('map').setView([DEFAULT_LAT, DEFAULT_LNG], 16);
+    // Init Map
+    const map = L.map('map').setView([START_LAT, START_LNG], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19, attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    const marker = L.marker([DEFAULT_LAT, DEFAULT_LNG], { draggable: true }).addTo(map);
+    const marker = L.marker([START_LAT, START_LNG], { draggable: true }).addTo(map);
 
-    // --- FETCH ADDRESS FUNCTION ---
-    function fetchAddress(lat, lng) {
-        $('#status-msg').text('Auto-detecting address...').addClass('text-orange-500').removeClass('text-green-600');
+    // --- 3. COUNTRY CHANGE LOGIC ---
+    $('#addr-country').on('change', function() {
+        const countryCode = $(this).val();
         
-        // Update Coordinates immediately (Read-only fields)
+        if(COUNTRY_COORDS[countryCode]) {
+            const data = COUNTRY_COORDS[countryCode];
+            
+            // 1. Move Map
+            map.flyTo([data.lat, data.lng], data.zoom, {
+                duration: 1.5 // Animation duration in seconds
+            });
+
+            // 2. Move Marker
+            marker.setLatLng([data.lat, data.lng]);
+
+            // 3. Update Inputs & Fetch basic info
+            // Note: We don't fetch full address immediately to keep it clean, 
+            // or we can call fetchAddress() if you want the center point details.
+            $('#val-lat').val(data.lat.toFixed(6));
+            $('#val-lng').val(data.lng.toFixed(6));
+            
+            // Trigger geocode to fill State/City/Zip if available at center
+            triggerGeocode(data.lat, data.lng);
+        }
+    });
+
+    // --- 4. GEOCODING FUNCTION ---
+    function fetchAddress(lat, lng) {
+        $('#status-msg').text('Fetching details...').addClass('text-orange-500').removeClass('text-green-600');
+        
         $('#val-lat').val(lat.toFixed(6));
         $('#val-lng').val(lng.toFixed(6));
 
@@ -200,39 +241,48 @@ jQuery(document).ready(function($) {
             method: 'GET',
             dataType: 'json',
             data: {
-                action: 'get_osm_address', // Matches functions.php proxy
+                action: 'get_osm_address',
                 lat: lat,
                 lon: lng
             },
             success: function(data) {
-                $('#status-msg').text('Address Detected (You can edit below)').addClass('text-green-600').removeClass('text-orange-500');
-
+                $('#status-msg').text('Address Found').addClass('text-green-600').removeClass('text-orange-500');
+                
                 const addr = data.address || {};
 
-                // --- POPULATE INPUT FIELDS ---
-                // We use .val() so users can see and edit the data
+                // Fill Inputs
                 $('#addr-house').val(addr.house_number || addr.building || '');
-                $('#addr-road').val(addr.road || addr.street || addr.pedestrian || '');
-                $('#addr-city').val(addr.city || addr.town || addr.village || addr.suburb || '');
+                $('#addr-road').val(addr.road || addr.street || '');
+                $('#addr-city').val(addr.city || addr.town || addr.suburb || '');
                 $('#addr-state').val(addr.state || addr.division || '');
                 $('#addr-zip').val(addr.postcode || '');
-                $('#addr-country').val(addr.country || 'Bangladesh');
+                
+                // Smart Country Sync:
+                // If the user dragged the marker to a different country, 
+                // we try to update the dropdown automatically if the code matches.
+                const detectedCountryCode = addr.country_code ? addr.country_code.toUpperCase() : '';
+                if(detectedCountryCode) {
+                   // Check if this code exists in our dropdown before setting
+                   if ($(`#addr-country option[value='${detectedCountryCode}']`).length > 0) {
+                       $('#addr-country').val(detectedCountryCode);
+                   }
+                }
 
-                marker.bindPopup(`<b>${addr.road || 'Location'}</b><br>${addr.suburb || addr.city || ''}`).openPopup();
+                marker.bindPopup(`<b>${addr.road || 'Location'}</b><br>${addr.city || ''}`).openPopup();
             },
             error: function() {
-                $('#status-msg').text('Detection failed. Please enter manually.').addClass('text-red-500');
+                $('#status-msg').text('Error fetching data').addClass('text-red-500');
             }
         });
     }
 
-    // --- DEBOUNCE LOGIC ---
+    // Debounce
     function triggerGeocode(lat, lng) {
         clearTimeout(timer);
         timer = setTimeout(() => fetchAddress(lat, lng), 1000);
     }
 
-    // --- EVENTS ---
+    // --- 5. MAP EVENTS ---
     marker.on('dragend', function() {
         const pos = marker.getLatLng();
         triggerGeocode(pos.lat, pos.lng);
@@ -244,49 +294,40 @@ jQuery(document).ready(function($) {
         triggerGeocode(lat, lng);
     });
 
-    // Initial Load
-    triggerGeocode(DEFAULT_LAT, DEFAULT_LNG);
+    // Initial run
+    triggerGeocode(START_LAT, START_LNG);
 
-    // ============================================================
-    //  SAVE BUTTON: GENERATE JSON FROM INPUTS
-    // ============================================================
+    // --- 6. SAVE BUTTON ---
     $('#save-btn').on('click', function() {
-        
-        // We read data directly from the input fields
-        // This captures whatever the user has manually typed/corrected
-        
         const finalData = {
-            organization_details: {
-                name:       $('#org-name').val(),
-                category:   $('#org-category').val(),
-                owner_name: $('#owner-name').val()
+            organization: {
+                name: $('#org-name').val(),
+                category: $('#org-category').val(),
+                owner: $('#owner-name').val()
             },
-            location_data: {
-                latitude:   $('#val-lat').val(),
-                longitude:  $('#val-lng').val(),
-                // Taking values from editable inputs
-                house_no:   $('#addr-house').val(),
-                road_no:    $('#addr-road').val(),
-                city:       $('#addr-city').val(),
-                state:      $('#addr-state').val(),
-                zipcode:    $('#addr-zip').val(),
-                country:    $('#addr-country').val()
+            address: {
+                country: $('#addr-country option:selected').text(), // Get text name (e.g., Bangladesh)
+                country_code: $('#addr-country').val(), // Get code (e.g., BD)
+                state: $('#addr-state').val(),
+                city: $('#addr-city').val(),
+                zip: $('#addr-zip').val(),
+                road: $('#addr-road').val(),
+                house: $('#addr-house').val(),
+                latitude: $('#val-lat').val(),
+                longitude: $('#val-lng').val()
             }
         };
 
-        // Validation Example
-        if(!finalData.organization_details.name) {
-            alert('Please enter the Organization Name.');
-            $('#org-name').focus();
+        if(!finalData.organization.name) {
+            alert('Please enter Organization Name');
             return;
         }
 
-        // --- CONSOLE LOG ---
         console.clear();
-        console.log("%c ✅ DATA READY FOR SUBMISSION ", "background: #059669; color: white; font-size: 14px; padding: 6px; border-radius: 4px;");
+        console.log("%c ✅ DATA SUBMITTED ", "background: green; color: white; padding: 5px; font-weight: bold;");
         console.log(JSON.stringify(finalData, null, 4));
-
-        alert('Data logged to Console! Check Developer Tools (F12).');
+        
+        alert('Data logged to Console!');
     });
 
 });
